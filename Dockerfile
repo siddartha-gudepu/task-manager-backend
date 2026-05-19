@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+ARG PORT
+ARG JWT_SECRET
+ARG MONGO_URI
+ARG ADMIN_INVITE_TOKEN
+
+ENV PORT=${PORT} \
+    JWT_SECRET=${JWT_SECRET} \
+    MONGO_URI=${MONGO_URI} \
+    ADMIN_INVITE_TOKEN=${ADMIN_INVITE_TOKEN}
+
+EXPOSE 8000
+
+CMD ["npm", "run", "dev"]
