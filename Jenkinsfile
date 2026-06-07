@@ -12,9 +12,9 @@ pipeline {
                 echo 'Testing the app'
             }
         }
-        stage('publish') {
+        stage('deploy') {
             steps {
-                echo 'Publishing the app'
+                echo 'deploying the app'
             }
         }
     }
