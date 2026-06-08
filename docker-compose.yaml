@@ -10,7 +10,7 @@ services:
       - mongo-data:/data/db
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +26,9 @@ services:
         condition: service_healthy
     restart: unless-stopped
   task-manager:
-    image: siddartha001/task-manager-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: task-manager
     ports:
       - "8000:8000"

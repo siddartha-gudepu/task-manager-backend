@@ -19,7 +19,7 @@ const getTasks=async(req,res)=>{
             return {...task._doc,completedTodoCount:completedCount}
         }));
         const allTasks=await Task.countDocuments(
-            req.user.role==="admin"?{}:{assinedTo:req.user._id}
+            req.user.role==="admin"?{}:{assignedTo:req.user._id}
         )
 
         const pendingTasks=await Task.countDocuments({

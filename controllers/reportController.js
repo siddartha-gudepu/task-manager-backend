@@ -46,7 +46,7 @@ const exportUsersReport=async(req,res)=>{
         users.forEach(user=>{
             userTaskmap[user._id]={name:user.name,email:user.email,taskCount:0,pendingTasks:0,inProgressTasks:0,completedTasks:0};
         });
-        userTaskmap.forEach(task=>{
+        userTasks.forEach(task=>{
             if(task.assignedTo){
                 task.assignedTo.forEach(assignedUser=>{
                     if(userTaskmap[assignedUser._id]){
