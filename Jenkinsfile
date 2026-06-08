@@ -1,7 +1,6 @@
 pipeline {
 agent any
 
-```
 environment {
     IMAGE_NAME = "siddartha001/task-manager-backend"
     IMAGE_TAG = "${BUILD_NUMBER}"
@@ -34,7 +33,6 @@ stages {
             ]) {
 
                 writeFile file: '.env', text: """
-```
 
 MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/taskdb?authSource=admin
 MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
@@ -53,7 +51,6 @@ PORT=8000
 }
 }
 
-```
     stage('Build Containers') {
         steps {
             sh 'docker compose build'
@@ -137,6 +134,4 @@ post {
         echo 'Build Failed'
     }
 }
-```
-
 }
