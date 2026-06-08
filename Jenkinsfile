@@ -32,41 +32,43 @@ stages {
                 )
             ]) {
 
-                writeFile file: '.env', text: """
+                script {
+                    def envContent = """
+MONGO_URI=mongodb://${env.MONGO_USER}:${env.MONGO_PASS}@mongodb:27017/taskdb?authSource=admin
+MONGO_INITDB_ROOT_USERNAME=${env.MONGO_USER}
+MONGO_INITDB_ROOT_PASSWORD=${env.MONGO_PASS}
 
-MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/taskdb?authSource=admin
-MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
-MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
+ME_CONFIG_MONGODB_URL=mongodb://${env.MONGO_USER}:${env.MONGO_PASS}@mongodb:27017/
+ME_CONFIG_MONGODB_ADMINUSERNAME=${env.MONGO_USER}
+ME_CONFIG_MONGODB_ADMINPASSWORD=${env.MONGO_PASS}
 
-ME_CONFIG_MONGODB_URL=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/
-ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER}
-ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASS}
-
-JWT_SECRET=${JWT_SECRET}
-ADMIN_INVITE_TOKEN=${ADMIN_INVITE_TOKEN}
+JWT_SECRET=${env.JWT_SECRET}
+ADMIN_INVITE_TOKEN=${env.ADMIN_INVITE_TOKEN}
 
 PORT=8000
 """
-}
-}
-}
+                    writeFile file: '.env', text: envContent
+                }
+            }
+        }
+    }
 
     stage('Build Containers') {
         steps {
-            sh 'docker compose build'
+            bat 'docker compose build'
         }
     }
 
     stage('Start Environment') {
         steps {
-            sh 'docker compose up -d'
+            bat 'docker compose up -d'
         }
     }
 
     stage('Wait for Application') {
         steps {
-            sh '''
-                sleep 20
+            bat '''
+                timeout /t 20 /nobreak
                 docker ps
             '''
         }
@@ -74,17 +76,15 @@ PORT=8000
 
     stage('Run Tests') {
         steps {
-            sh '''
-                docker compose exec -T task-manager npm test
-            '''
+            bat 'docker compose exec -T task-manager npm test'
         }
     }
 
     stage('Build Docker Image') {
         steps {
-            sh '''
-                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+            bat '''
+                docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
+                docker tag %IMAGE_NAME%:%IMAGE_TAG% %IMAGE_NAME%:latest
             '''
         }
     }
@@ -99,11 +99,10 @@ PORT=8000
                 )
             ]) {
 
-                sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:latest
+                bat '''
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker push %IMAGE_NAME%:%IMAGE_TAG%
+                    docker push %IMAGE_NAME%:latest
                 '''
             }
         }
@@ -111,9 +110,7 @@ PORT=8000
 
     stage('Archive Artifacts') {
         steps {
-            sh '''
-                docker save ${IMAGE_NAME}:${IMAGE_TAG} -o task-manager-${BUILD_NUMBER}.tar
-            '''
+            bat 'docker save %IMAGE_NAME%:%IMAGE_TAG% -o task-manager-%BUILD_NUMBER%.tar'
 
             archiveArtifacts artifacts: '*.tar', fingerprint: true
         }
@@ -123,7 +120,7 @@ PORT=8000
 post {
 
     always {
-        sh 'docker compose down -v || true'
+        bat 'docker compose down -v'
     }
 
     success {
